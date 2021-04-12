@@ -35,15 +35,25 @@ router.post('/createPrice', async (req, res) => {
 })
 
 router.post('/createSubscription', async (req, res) => {
-  const subscription = await stripe.subscriptions.create({
+  const data = req.body.deposit ? 
+  {
     customer: req.body.customer,
     items: [{
       price: req.body.price,
     }],
-    // add_invoice_items: [{
-    //   price: '{{PRICE_ID}}',
-    // }],
-  }); 
+    add_invoice_items: [{
+      price: req.body.deposit,
+    }],
+  }
+  :
+  {
+    customer: req.body.customer,
+    items: [{
+      price: req.body.price,
+    }],
+  };
+
+  const subscription = await stripe.subscriptions.create(data); 
 
   res.json(subscription)
 })
