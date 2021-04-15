@@ -30,7 +30,13 @@ router.post('/createPaymentIntent', async (req, res) => {
     payment_method:req.body.pm
   });
 
-  console.log(paymentIntent, paymentIntent.client_secret)
+  res.json(paymentIntent)
 });
+
+router.get('/paymentIntent', async (req, res) => {
+  const paymentIntent = await stripe.paymentIntents.retrieve(req.query.id);
+
+  res.json(paymentIntent)
+})
 
 module.exports = router;

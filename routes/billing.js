@@ -21,18 +21,21 @@ router.post('/createCustomer', async (req, res) => {
 })
 
 router.post('/createPrice', async (req, res) => {
-  const result = await stripe.prices.create({
+  let data = {
     unit_amount: req.body.amount,
     currency: 'eur',
-    recurring: {
-      interval: 'month',
-    },
     product_data:{
       name: req.body.name
     }, 
-  });
+  }
+  // recurring: {
+  //   interval: 'month',
+  // },
+  req.body.isRecurring ? data.recurring = {interval:req.body.interval} : null;
+  const result = await stripe.prices.create(data);
   res.json(result)
 })
+
 
 router.post('/createSubscription', async (req, res) => {
   const data = req.body.deposit ? 
@@ -44,6 +47,7 @@ router.post('/createSubscription', async (req, res) => {
     add_invoice_items: [{
       price: req.body.deposit,
     }],
+    off_session:true,
   }
   :
   {
@@ -51,6 +55,7 @@ router.post('/createSubscription', async (req, res) => {
     items: [{
       price: req.body.price,
     }],
+    off_session:true,
   };
 
   const subscription = await stripe.subscriptions.create(data); 
@@ -59,7 +64,8 @@ router.post('/createSubscription', async (req, res) => {
 })
 
 router.post('/createSubSchedule', async (req, res) => {
-  const subscriptionSchedule = await stripe.subscriptionSchedules.create({
+  const data = req.body.deposit ? 
+  {
     customer: req.body.customer,
     start_date: req.body.start_date,
     end_behavior: 'release',
@@ -72,22 +78,46 @@ router.post('/createSubSchedule', async (req, res) => {
           },
         ],
         iterations: req.body.iterations,
-        // add_invoice_items: [
-        //   {
-        //     price: '{{PRICE_ID}}',
-        //   }
-        // ],
+        add_invoice_items: [
+          {
+            price: req.body.deposit,
+          }
+        ],
       },
     ],
-  });
+  }
+  :
+  {
+    customer: req.body.customer,
+    start_date: req.body.start_date,
+    end_behavior: 'release',
+    phases: [
+      {
+        items: [
+          {
+            price: req.body.price,
+            quantity: 1,
+          },
+        ],
+        iterations: req.body.iterations,
+      },
+    ],
+  };
+
+  const subscriptionSchedule = await stripe.subscriptionSchedules.create(data);
 
   res.json(subscriptionSchedule)
 })
 
 router.get('/getSubscription', async (req, res) => {
-  const subscription = await stripe.subscriptions.retrieve(req.params.id);
+  const subscription = await stripe.subscriptions.retrieve(req.query.id);
   console.log(subscription);
   res.json(subscription);
+})
+
+router.get('/getInvocie', async (req, res) => {
+  const invoice = await stripe.invoices.retrieve(req.query.id);
+  res.json(invoice)
 })
 
 module.exports = router;
