@@ -120,4 +120,20 @@ router.get('/getInvocie', async (req, res) => {
   res.json(invoice)
 })
 
+router.get('/getCustomer', async (req, res) => {
+  const customer = await stripe.customers.retrieve(req.query.id);
+  res.json(customer)
+})
+
+router.get('/getInvocieBySubscription', async (req, res) => {
+  const invoices = await stripe.invoices.list({
+    subscription:req.query.id
+  });
+  res.json(invoices);
+})
+
+router.get('/cancelSubscription', async (req, res) => {
+  const deleted = await stripe.subscriptions.del(req.query.id);
+  res.json(deleted);
+})
 module.exports = router;

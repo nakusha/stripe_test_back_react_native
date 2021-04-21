@@ -39,4 +39,11 @@ router.get('/paymentIntent', async (req, res) => {
   res.json(paymentIntent)
 })
 
+router.get('/refundPayment', async (req, res) => {
+  const refund = await stripe.refunds.create({
+    payment_intent: req.query.id,
+  });
+  res.json(refund)
+})
+
 module.exports = router;
